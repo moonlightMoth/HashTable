@@ -220,6 +220,39 @@ public class HashTableTest
         Assertions.assertEquals(ht.size(), 0);
     }
 
+    @Test
+    public void testTotalSpace()
+    {
+        HashTable<K, V> ht = new HashTable<>(10, 0.75f);
+
+        K k0 = new K(1, 2);
+        V v0 = new V("sas0");
+
+        K k1 = new K(1, 3);
+        V v1 = new V("sas1");
+
+        K k2 = new K(1, 4);
+        V v2 = new V("sas2");
+
+        K k3 = new K(1, 5);
+        V v3 = new V("sas3");
+
+        K k4 = new K(1, 6);
+        V v4 = new V("sas3");
+
+        K k5 = new K(1, 8);
+        V v5 = new V("sas3");
+
+        ht.put(k0, v0);
+        ht.put(k1, v1);
+        ht.put(k2, v2);
+        ht.put(k3, v3);
+        ht.put(k4, v4);
+        ht.put(k5, v5);
+
+        Assertions.assertEquals(10, ht.totalSpace());
+    }
+
 
 
     class K implements Comparable

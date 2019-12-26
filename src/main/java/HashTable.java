@@ -165,6 +165,11 @@ public class HashTable <K, V> implements Map<K, V>
         return count;
     }
 
+    int totalSpace()
+    {
+        return space;
+    }
+
     public boolean isEmpty()
     {
         return count == 0;
