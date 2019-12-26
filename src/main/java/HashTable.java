@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.function.Predicate;
 
 public class HashTable <K, V> implements Map<K, V>
 {
@@ -46,6 +47,11 @@ public class HashTable <K, V> implements Map<K, V>
     {
         HashTable.Entry<K, V> e = new HashTable.Entry<K, V>(k, v);
 
+        if (((float)count / (float)space) > loadFactor)
+        {
+            expand();
+            put(k, v);
+        }
 
         int h1 = hash1(k);
         int h2 = hash2(k);
@@ -65,13 +71,6 @@ public class HashTable <K, V> implements Map<K, V>
             else
                 h = (h + h2) % space;
         }
-
-        if (((float)count / (float)space) > loadFactor)
-        {
-            expand();
-            put(k, v);
-        }
-
 
         return null;
     }
@@ -152,7 +151,13 @@ public class HashTable <K, V> implements Map<K, V>
 
     public Set<Map.Entry<K, V>> entrySet()
     {
-        return new HashSet<>(Arrays.asList(table));
+        Set<Map.Entry<K, V>> set = new HashSet<>();
+
+        for (int i = 0; i < space; i++)
+            if (table[i] != null)
+                set.add(table[i]);
+
+        return set;
     }
 
     public int size()
