@@ -20,6 +20,20 @@ public class HashTableTest
     }
 
     @Test
+    public void testAddExisting()
+    {
+        HashTable<K, V> ht = new HashTable<>();
+
+        K k = new K(1, 2);
+        V v = new V("sas");
+
+        ht.put(k, v);
+        V res = ht.put(k, v);
+
+        Assertions.assertNull(res);
+    }
+
+    @Test
     public void testContains()
     {
         HashTable<K, V> ht = new HashTable<>();

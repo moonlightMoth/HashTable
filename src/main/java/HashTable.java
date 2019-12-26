@@ -4,16 +4,16 @@ public class HashTable <K, V> implements Map<K, V>
 {
     private Entry<K, V>[] table;
     private float loadFactor;
-    private int threshold;
     private int count;
     private int space;
+    private int firstPrime;
 
     public HashTable(int space, float loadFactor)
     {
         this.loadFactor = loadFactor;
         this.space = space;
         this.table = new HashTable.Entry[space];
-        threshold = (int)(loadFactor * space);
+        firstPrime = findFirstPrime();
     }
 
     public HashTable()
@@ -46,29 +46,32 @@ public class HashTable <K, V> implements Map<K, V>
     {
         HashTable.Entry<K, V> e = new HashTable.Entry<K, V>(k, v);
 
-        for (int j = 0; j < 2; j++)
+
+        int h1 = hash1(k);
+        int h2 = hash2(k);
+
+        int h = h1;
+
+        for (int i = 0; i < space; i++)
         {
-            int h1 = hash1(k);
-            int h2 = hash2(k);
-
-            int h = h1;
-
-            for (int i = 0; i < space; i++)
+            if (table[h] == null)
             {
-                if (table[h] == null)
-                {
-                    table[h] = e;
-                    count++;
-                    return v;
-                }
-                else
-                {
-                    h = (h + h2) % space;
-                }
+                table[h] = e;
+                count++;
+                return v;
             }
-
-            expand();
+            else if (table[h].key.equals(k))
+                return null;
+            else
+                h = (h + h2) % space;
         }
+
+        if (((float)count / (float)space) > loadFactor)
+        {
+            expand();
+            put(k, v);
+        }
+
 
         return null;
     }
@@ -194,16 +197,45 @@ public class HashTable <K, V> implements Map<K, V>
 
     private int hash1(K k)
     {
-        return (k.hashCode() + 15) % space;
+        return Math.abs(k.hashCode() + 15) % space;
     }
 
     private int hash2(K k)
     {
-        return (2 * k.hashCode() + 34) % space + 1;
+        return Math.abs(firstPrime - (2 * k.hashCode() % firstPrime));
+    }
+
+    private int findFirstPrime()
+    {
+        if (space < 3)
+            return 3;
+        if (space == 3)
+            return 5;
+
+        for (int i = 3; i < space; i++)
+        {
+            if (i % 2 == 0) continue;
+            if (gcd(space, i) == 1)
+                return i;
+        }
+
+        space--;
+        return findFirstPrime();
+    }
+
+    private int gcd(int a, int b)
+    {
+        int c;
+        while (b > 0) {
+            c = a % b;
+            a = b;
+            b = c;
+        }
+        return Math.abs(a);
     }
 
 
-    public static class Entry<K, V> implements Map.Entry<K, V>
+    static class Entry<K, V> implements Map.Entry<K, V>
     {
         private K key;
         private V value;
