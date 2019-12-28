@@ -8,6 +8,7 @@ public class HashTable <K, V> implements Map<K, V>
     private int count;
     private int space;
     private int firstPrime;
+    private boolean modified;
 
     public HashTable(int space, float loadFactor)
     {
@@ -48,10 +49,7 @@ public class HashTable <K, V> implements Map<K, V>
         HashTable.Entry<K, V> e = new HashTable.Entry<K, V>(k, v);
 
         if (((float)count / (float)space) > loadFactor)
-        {
             expand();
-            put(k, v);
-        }
 
         int h1 = hash1(k);
         int h2 = hash2(k);
@@ -64,10 +62,11 @@ public class HashTable <K, V> implements Map<K, V>
             {
                 table[h] = e;
                 count++;
+                modified = true;
                 return v;
             }
             else if (table[h].key.equals(k))
-                return null;
+                return table[h].value;
             else
                 h = (h + h2) % space;
         }
@@ -96,6 +95,7 @@ public class HashTable <K, V> implements Map<K, V>
             {
                 table[h] = null;
                 count--;
+                modified = true;
                 return true;
             }
             h = (h + h2) % space;
@@ -115,15 +115,14 @@ public class HashTable <K, V> implements Map<K, V>
     public void putAll(Map<? extends K, ? extends V> map)
     {
         for(Map.Entry<? extends K, ? extends V> e : map.entrySet())
-        {
             put(e.getKey(), e.getValue());
-        }
     }
 
     public void clear()
     {
         table = new HashTable.Entry[space];
         count = 0;
+        modified = true;
     }
 
     public Set<K> keySet()
@@ -244,6 +243,11 @@ public class HashTable <K, V> implements Map<K, V>
         return Math.abs(a);
     }
 
+    public java.util.Iterator<Map.Entry<K, V>> iterator()
+    {
+        return new HashTableIterator();
+    }
+
 
     static class Entry<K, V> implements Map.Entry<K, V>
     {
@@ -288,4 +292,52 @@ public class HashTable <K, V> implements Map<K, V>
             return Objects.hash(key, value);
         }
     }
+
+    public class HashTableIterator implements Iterator<Map.Entry<K, V>>
+    {
+        int current = 0;
+        List<Map.Entry<K, V>> list = new ArrayList<>();
+
+        HashTableIterator()
+        {
+            fillList();
+            modified = false;
+        }
+
+        private void fillList()
+        {
+            for (Entry<K, V> kvEntry : table)
+            {
+                if (kvEntry != null)
+                    list.add(kvEntry);
+            }
+        }
+
+        @Override
+        public boolean hasNext()
+        {
+            if (modified)
+                throw new ConcurrentModificationException();
+            return count > current;
+        }
+
+        @Override
+        public Map.Entry<K, V> next()
+        {
+            if (modified)
+                throw new ConcurrentModificationException();
+
+            return list.get(current++);
+        }
+
+        @Override
+        public void remove()
+        {
+            if (modified)
+                throw new ConcurrentModificationException();
+            HashTable.this.remove(list.get(current-1));
+            modified = false;
+        }
+    }
+
 }

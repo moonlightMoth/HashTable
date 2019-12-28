@@ -26,11 +26,12 @@ public class HashTableTest
 
         K k = new K(1, 2);
         V v = new V("sas");
+        V v2 = new V("saaaaaaas");
 
         ht.put(k, v);
-        V res = ht.put(k, v);
+        V res = ht.put(k, v2);
 
-        Assertions.assertNull(res);
+        Assertions.assertEquals(res, v);
     }
 
     @Test
@@ -253,6 +254,84 @@ public class HashTableTest
         Assertions.assertEquals(10, ht.totalSpace());
     }
 
+    @Test
+    public void testIteratorGet()
+    {
+        HashTable<K, V> ht = new HashTable<>();
+
+        K k0 = new K(1, 2);
+        V v0 = new V("sas0");
+
+        K k1 = new K(1, 3);
+        V v1 = new V("sas1");
+
+        K k2 = new K(1, 4);
+        V v2 = new V("sas2");
+
+        K k3 = new K(1, 5);
+        V v3 = new V("sas3");
+
+        K k4 = new K(1, 6);
+        V v4 = new V("sas3");
+
+        K k5 = new K(1, 8);
+        V v5 = new V("sas3");
+
+        ht.put(k0, v0);
+        ht.put(k1, v1);
+        ht.put(k2, v2);
+        ht.put(k3, v3);
+        ht.put(k4, v4);
+        ht.put(k5, v5);
+
+        ArrayList<Map.Entry<K, V>> as = new ArrayList<>();
+        as.add(new HashTable.Entry<>(k0, v0));
+        as.add(new HashTable.Entry<>(k1, v1));
+        as.add(new HashTable.Entry<>(k2, v2));
+        as.add(new HashTable.Entry<>(k3, v3));
+        as.add(new HashTable.Entry<>(k4, v4));
+        as.add(new HashTable.Entry<>(k5, v5));
+
+        Iterator<Map.Entry<K, V>> iterator = ht.iterator();
+        ArrayList<Map.Entry<K, V>> list = new ArrayList<>();
+
+        while(iterator.hasNext())
+        {
+            list.add(iterator.next());
+        }
+
+        Assertions.assertTrue(list.containsAll(as));
+    }
+
+    @Test
+    public void testIteratorFailFast()
+    {
+        HashTable<K, V> ht = new HashTable<>();
+
+        K k = new K(1, 2);
+        V v = new V("sas");
+
+        K k1 = new K(1, 3);
+        V v1 = new V("sass");
+
+        ht.put(k, v);
+
+        Iterator<Map.Entry<K, V>> iterator = ht.iterator();
+
+        ht.put(k1, v1);
+
+        Assertions.assertThrows(ConcurrentModificationException.class, iterator::remove);
+    }
+
+    @Test
+    public void testIteratorNoNext()
+    {
+        HashTable<K, V> ht = new HashTable<>();
+
+        Iterator i = ht.iterator();
+
+        Assertions.assertThrows(IndexOutOfBoundsException.class, i::next);
+    }
 
 
     class K implements Comparable
